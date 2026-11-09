@@ -4,15 +4,16 @@
 - [x] Repository layout
 - [x] Architecture and security baseline
 - [x] Environment template and development guidance
-- [ ] CI and lint/test baseline
+- [x] Initial configuration and dependency manifest
 
 ## Stage 2 — Text assistant
-- [ ] FastAPI bootstrap and health endpoint
-- [ ] Ollama provider adapter
-- [ ] Conversation endpoint
-- [ ] SQLite conversation history
-- [ ] Minimal responsive chat interface
-- [ ] Unit and integration tests
+- [x] FastAPI application bootstrap and health endpoint
+- [x] Ollama local chat adapter
+- [x] Conversation endpoint
+- [x] SQLite conversation history
+- [x] Responsive web chat interface
+- [x] Unit and API tests
+- [ ] Verify on target Windows laptop with local Ollama
 
 ## Stage 3 — Voice
 - [ ] Microphone capture

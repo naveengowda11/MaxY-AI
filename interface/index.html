@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f4">
+  <meta name="description" content="MAXY personal AI assistant">
+  <title>MAXY — Personal AI</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">M</span><div><strong>MAXY</strong><small>PERSONAL AI</small></div></div>
+      <button id="new-chat" class="new-chat" type="button">＋ New conversation</button>
+      <div class="sidebar-note"><span class="status-dot"></span><span>Local-first assistant</span></div>
+      <div class="sidebar-bottom">Your assistant. Your machine. Your control.</div>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div><span class="eyebrow">YOUR PERSONAL INTELLIGENCE</span><h1>Assistant</h1></div>
+        <div class="connection"><span class="status-dot"></span><span id="connection-label">Checking local service…</span></div>
+      </header>
+
+      <section id="messages" class="messages" aria-live="polite">
+        <div id="welcome" class="welcome">
+          <div class="welcome-orb"><span>M</span></div>
+          <p class="eyebrow">HELLO, I'M MAXY</p>
+          <h2>What can I help you think through?</h2>
+          <p class="welcome-copy">Ask a question, plan your day, or work through an idea. I'm running through your local AI setup.</p>
+          <div class="suggestions">
+            <button type="button" data-prompt="Help me plan my day.">Plan my day</button>
+            <button type="button" data-prompt="Explain a difficult topic in simple terms.">Explain something</button>
+            <button type="button" data-prompt="Help me break a project into steps.">Organize a project</button>
+          </div>
+        </div>
+      </section>
+
+      <form id="chat-form" class="composer">
+        <label class="sr-only" for="message-input">Message MAXY</label>
+        <textarea id="message-input" rows="1" maxlength="8000" placeholder="Message MAXY…" required></textarea>
+        <button id="send-button" class="send-button" type="submit" aria-label="Send message"><span>↑</span></button>
+        <p class="composer-hint">MAXY is in its text-assistant stage. It cannot perform computer actions yet.</p>
+      </form>
+    </section>
+  </main>
+  <script src="/static/script.js" defer></script>
+</body>
+</html>

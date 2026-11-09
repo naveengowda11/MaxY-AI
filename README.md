@@ -2,72 +2,53 @@
 
 **MAXY — Your Personal Intelligence System**
 
-A local-first personal AI assistant for Windows, designed to grow into a Windows + Android companion. MAXY is planned around voice interaction, a local language model, persistent memory, computer tools, and explicit user approval for consequential actions.
+A local-first personal AI assistant for Windows, designed to grow into a Windows + Android companion. MAXY is built around voice interaction, a local language model, persistent memory, computer tools, and explicit user approval for consequential actions.
 
-> Status: **Stage 1 — architecture and repository foundation.** Runtime features are not implemented yet.
+## Current release: Stage 2 — Text assistant
 
-## Principles
-- Local-first: basic conversations use a local model without a cloud API.
-- Permission before action: consequential actions require clear, scoped user approval.
-- Modular: voice, reasoning, memory, tools, API, and interface stay separate.
-- Honest status: unimplemented features are never presented as working.
-- Secure cross-device access: Android pairing must be authenticated; no public unauthenticated server.
+The repository now includes:
+- FastAPI application and health endpoint.
+- Local Ollama chat integration (no paid cloud inference API).
+- SQLite conversation and message persistence.
+- Conversation history restoration in the web interface.
+- Responsive browser-based chat UI.
+- Unit and API tests.
 
-## Planned architecture
-```text
-Windows desktop / Android companion
-              |
-         FastAPI gateway
-              |
-        MAXY assistant core
-       /         |          \
-  Local LLM    Memory    Permission gate
-       |         |          |
-    Ollama     SQLite    Tool registry
-                           |
-                   Windows / browser tools
+Voice, wake-word detection, computer control, and Android device pairing are future milestones, not current capabilities.
 
-Voice -> Wake word -> Speech-to-text -> Core -> Text-to-speech
+## Quick start (Windows)
+
+Requirements: Python 3.11+, Git, and Ollama.
+
+```powershell
+git clone https://github.com/naveengowda11/MaxY-AI.git
+cd MaxY-AI
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+Copy-Item .env.example .env
+ollama pull llama3.2:1b
+python main.py
 ```
 
-## Technology direction
-| Area | Initial choice |
-|---|---|
-| Runtime | Python 3.11+ |
-| Local inference | Ollama |
-| API | FastAPI + Uvicorn |
-| Speech recognition | faster-whisper (optional) |
-| Wake word | openWakeWord (optional) |
-| Speech synthesis | Kokoro (optional; separate model setup) |
-| Storage | SQLite |
-| Desktop automation | PyAutoGUI, behind approval gates |
-| Browser automation | Playwright, behind approval gates |
-| UI | HTML, CSS, vanilla JavaScript |
-| Android | Responsive web companion first |
+Open http://127.0.0.1:8765.
 
-Hardware target is an 8 GB Windows laptop. Model and audio workloads will be staged to control RAM use.
+Keep Ollama running. The first model response may take longer while the model loads.
 
-## Repository guide
+## Run tests
+
+```powershell
+pytest -q
+```
+
+## Architecture and safety
 - [Architecture](docs/ARCHITECTURE.md)
 - [Roadmap](docs/ROADMAP.md)
-- [Setup](docs/SETUP.md)
-- [Security](docs/SECURITY.md)
+- [Setup and troubleshooting](docs/SETUP.md)
+- [Security baseline](docs/SECURITY.md)
 
-## Current state
-This initial commit establishes structure, boundaries, documentation, and configuration only. The assistant is not runnable yet.
-
-- [x] Architecture and module boundaries
-- [x] Configuration template and development guidance
-- [ ] Local LLM conversation runtime
-- [ ] Voice input/output and wake word
-- [ ] SQLite conversation memory
-- [ ] Approval workflow and restricted tools
-- [ ] Windows dashboard
-- [ ] Authenticated Android companion
-- [ ] Automated tests and packaging
-
-## Configuration
-Copy `.env.example` to `.env`. Never commit real credentials, tokens, or device secrets.
+The API binds to localhost by default. Do not expose it to the LAN or public internet. Authenticated Android pairing is not implemented yet.
 
 ## License
-This repository includes the MIT License. See [LICENSE](LICENSE) for the terms.
+MIT. See [LICENSE](LICENSE).
