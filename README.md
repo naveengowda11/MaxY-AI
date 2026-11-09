@@ -70,4 +70,4 @@ This initial commit establishes structure, boundaries, documentation, and config
 Copy `.env.example` to `.env`. Never commit real credentials, tokens, or device secrets.
 
 ## License
-No license has been selected. All rights remain with the repository owner until a license is added.
+This repository includes the MIT License. See [LICENSE](LICENSE) for the terms.
