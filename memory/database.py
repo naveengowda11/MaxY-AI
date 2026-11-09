@@ -1,7 +1,9 @@
 """SQLite persistence for conversations and messages."""
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Iterator
 from uuid import uuid4
 
 
@@ -20,8 +22,20 @@ class ChatStore:
         connection.execute("PRAGMA foreign_keys = ON")
         return connection
 
+    @contextmanager
+    def _connection(self) -> Iterator[sqlite3.Connection]:
+        connection = self._connect()
+        try:
+            yield connection
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
     def initialize(self) -> None:
-        with self._connect() as connection:
+        with self._connection() as connection:
             connection.executescript(
                 """
                 CREATE TABLE IF NOT EXISTS conversations (
@@ -47,7 +61,7 @@ class ChatStore:
     def create_conversation(self, title: str = "New conversation") -> str:
         conversation_id = str(uuid4())
         now = utc_now()
-        with self._connect() as connection:
+        with self._connection() as connection:
             connection.execute(
                 "INSERT INTO conversations(id, title, created_at, updated_at) "
                 "VALUES (?, ?, ?, ?)",
@@ -56,7 +70,7 @@ class ChatStore:
         return conversation_id
 
     def conversation_exists(self, conversation_id: str) -> bool:
-        with self._connect() as connection:
+        with self._connection() as connection:
             row = connection.execute(
                 "SELECT 1 FROM conversations WHERE id = ?", (conversation_id,)
             ).fetchone()
@@ -66,7 +80,7 @@ class ChatStore:
         if role not in {"user", "assistant"}:
             raise ValueError("role must be 'user' or 'assistant'")
         now = utc_now()
-        with self._connect() as connection:
+        with self._connection() as connection:
             connection.execute(
                 "INSERT INTO messages(conversation_id, role, content, created_at) "
                 "VALUES (?, ?, ?, ?)",
@@ -81,7 +95,7 @@ class ChatStore:
         self, conversation_id: str, limit: int = 12
     ) -> list[dict[str, str]]:
         safe_limit = max(1, min(int(limit), 100))
-        with self._connect() as connection:
+        with self._connection() as connection:
             rows = connection.execute(
                 "SELECT role, content FROM messages WHERE conversation_id = ? "
                 "ORDER BY id DESC LIMIT ?",
@@ -93,7 +107,7 @@ class ChatStore:
         ]
 
     def get_messages(self, conversation_id: str) -> list[dict[str, str]]:
-        with self._connect() as connection:
+        with self._connection() as connection:
             rows = connection.execute(
                 "SELECT role, content, created_at FROM messages "
                 "WHERE conversation_id = ? ORDER BY id ASC",
@@ -103,7 +117,7 @@ class ChatStore:
 
     def list_conversations(self, limit: int = 30) -> list[dict[str, str]]:
         safe_limit = max(1, min(int(limit), 100))
-        with self._connect() as connection:
+        with self._connection() as connection:
             rows = connection.execute(
                 "SELECT id, title, created_at, updated_at FROM conversations "
                 "ORDER BY updated_at DESC LIMIT ?",
