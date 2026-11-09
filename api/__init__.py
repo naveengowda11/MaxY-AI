@@ -1,0 +1,1 @@
+"""MAXY API package."""

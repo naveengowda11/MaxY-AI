@@ -1,0 +1,1 @@
+"""MAXY assistant core package."""
