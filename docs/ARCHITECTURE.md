@@ -33,9 +33,12 @@ MAXY is a personal assistant hosted primarily on Windows. The Windows service ow
 - Future releases must support inspection, correction, export, and deletion.
 
 ### Voice
-- Wake-word detection, capture, speech-to-text, and text-to-speech are separate services.
-- Voice remains optional; text interaction must work independently.
-- Audio/model/device failures must be visible.
+- Browser push-to-talk capture sends audio to the localhost API.
+- faster-whisper performs local CPU speech-to-text after its model is cached.
+- pyttsx3 uses installed Windows SAPI voices for offline speech output.
+- Voice remains opt-in; text interaction works independently.
+- Wake-word detection and always-listening capture are not enabled in the current release.
+- Temporary audio files are deleted after processing; audio/model/device failures are surfaced.
 
 ## Request lifecycle
 1. Client submits text or transcription.

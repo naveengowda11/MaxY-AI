@@ -11,6 +11,8 @@ from config import Settings, get_settings
 from core.assistant import AssistantService
 from core.llm import OllamaClient
 from memory.database import ChatStore
+from voice.routes import router as voice_router
+from voice.service import VoiceService
 
 INTERFACE_DIR = Path(__file__).resolve().parent.parent / "interface"
 
@@ -19,6 +21,7 @@ def create_app(
     settings: Settings | None = None,
     store: ChatStore | None = None,
     assistant: AssistantService | None = None,
+    voice_service: VoiceService | None = None,
 ) -> FastAPI:
     app_settings = settings or get_settings()
     chat_store = store or ChatStore(app_settings.database_path)
@@ -41,13 +44,15 @@ def create_app(
     app = FastAPI(
         title="MAXY AI",
         description="Local-first personal AI assistant",
-        version="0.2.0",
+        version="0.3.0",
         lifespan=lifespan,
     )
     app.state.settings = app_settings
     app.state.store = chat_store
     app.state.assistant = assistant_service
+    app.state.voice = voice_service or VoiceService(app_settings)
     app.include_router(router)
+    app.include_router(voice_router)
 
     if INTERFACE_DIR.exists():
         app.mount(

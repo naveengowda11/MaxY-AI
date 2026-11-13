@@ -1,1 +1,1 @@
-"""MAXY voice interfaces (planned)."""
+"""Optional local voice capabilities for MAXY."""

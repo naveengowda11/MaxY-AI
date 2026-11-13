@@ -4,24 +4,24 @@
 - [x] Repository layout
 - [x] Architecture and security baseline
 - [x] Environment template and development guidance
-- [x] Initial configuration and dependency manifest
 
 ## Stage 2 — Text assistant
-- [x] FastAPI application bootstrap and health endpoint
+- [x] FastAPI application and health endpoint
 - [x] Ollama local chat adapter
-- [x] Conversation endpoint
-- [x] SQLite conversation history
+- [x] Conversation endpoint and SQLite history
 - [x] Responsive web chat interface
 - [x] Unit and API tests
 - [ ] Verify on target Windows laptop with local Ollama
 
 ## Stage 3 — Voice
-- [ ] Microphone capture
-- [ ] Speech-to-text adapter
-- [ ] Text-to-speech adapter
-- [ ] Push-to-talk
-- [ ] Opt-in wake word
-- [ ] Audio diagnostics
+- [x] Optional local speech-to-text adapter (faster-whisper)
+- [x] Offline speech output using Windows SAPI voices
+- [x] Browser microphone capture and push-to-talk controls
+- [x] Voice transcript to assistant conversation pipeline
+- [x] Voice endpoint tests and audio upload size limits
+- [ ] Verify microphone and speaker devices on target Windows laptop
+- [ ] Evaluate a neural offline TTS voice for more natural speech
+- [ ] Opt-in wake-word detection (separate, later milestone)
 
 ## Stage 4 — Safe actions
 - [ ] Typed tool registry and approval lifecycle

@@ -27,6 +27,13 @@ class Settings(BaseSettings):
     max_history_messages: int = 12
     request_timeout_seconds: float = 90.0
 
+    # Voice is opt-in and uses local models / installed Windows speech voices.
+    voice_enabled: bool = False
+    wake_word_enabled: bool = False
+    voice_stt_model: str = "base"
+    voice_tts_rate: int = 180
+    voice_tts_volume: float = 1.0
+
 
 @lru_cache
 def get_settings() -> Settings:

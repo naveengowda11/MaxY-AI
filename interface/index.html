@@ -28,7 +28,7 @@
           <div class="welcome-orb"><span>M</span></div>
           <p class="eyebrow">HELLO, I'M MAXY</p>
           <h2>What can I help you think through?</h2>
-          <p class="welcome-copy">Ask a question, plan your day, or work through an idea. I'm running through your local AI setup.</p>
+          <p class="welcome-copy">Type a message or use push-to-talk. Your speech is processed locally on this computer.</p>
           <div class="suggestions">
             <button type="button" data-prompt="Help me plan my day.">Plan my day</button>
             <button type="button" data-prompt="Explain a difficult topic in simple terms.">Explain something</button>
@@ -40,8 +40,11 @@
       <form id="chat-form" class="composer">
         <label class="sr-only" for="message-input">Message MAXY</label>
         <textarea id="message-input" rows="1" maxlength="8000" placeholder="Message MAXY…" required></textarea>
-        <button id="send-button" class="send-button" type="submit" aria-label="Send message"><span>↑</span></button>
-        <p class="composer-hint">MAXY is in its text-assistant stage. It cannot perform computer actions yet.</p>
+        <div class="composer-actions">
+          <button id="mic-button" class="voice-button" type="button" aria-label="Start voice recording" title="Push to talk" disabled><span>●</span><span id="mic-label">Voice unavailable</span></button>
+          <button id="send-button" class="send-button" type="submit" aria-label="Send message"><span>↑</span></button>
+        </div>
+        <p id="composer-hint" class="composer-hint">Text mode is always available. Voice features can be enabled in your local .env file.</p>
       </form>
     </section>
   </main>

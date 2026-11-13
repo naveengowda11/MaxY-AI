@@ -1,0 +1,9 @@
+# Install after the base requirements: pip install -r requirements-voice.txt
+# faster-whisper runs speech recognition locally on CPU (first use downloads the model).
+faster-whisper>=1.0,<2.0
+
+# Uses installed Windows SAPI voices for offline speech output.
+pyttsx3>=2.90,<3.0
+
+# FastAPI requires this package to receive multipart audio uploads.
+python-multipart>=0.0.9,<1.0
