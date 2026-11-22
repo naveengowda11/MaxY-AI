@@ -147,7 +147,10 @@ class ChatStore:
         query += "ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END, created_at DESC LIMIT ?"
         with self._connection() as connection:
             rows = connection.execute(query, (safe_limit,)).fetchall()
-        return [dict(row) for row in rows]
+        tasks = [dict(row) for row in rows]
+        for task in tasks:
+            task["due_at"] = task["due_at"] or ""
+        return tasks
 
     def set_task_status(self, task_id: str, status: str) -> bool:
         if status not in {"open", "completed"}:
