@@ -7,6 +7,9 @@ from api.schemas import (
     ConversationSummary,
     HealthResponse,
     MessageItem,
+    MemoryCreate,
+    TaskCreate,
+    TaskStatusUpdate,
 )
 from core.llm import LLMError
 
@@ -74,3 +77,55 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
     return ChatResponse(
         conversation_id=conversation_id, reply=reply, pending_action=pending_action
     )
+
+
+@router.get("/memory")
+async def list_memory(request: Request) -> list[dict[str, str]]:
+    return request.app.state.store.list_memories()
+
+
+@router.post("/memory", status_code=status.HTTP_201_CREATED)
+async def create_memory(payload: MemoryCreate, request: Request) -> dict[str, str]:
+    try:
+        return request.app.state.store.save_memory(payload.content, payload.category)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.delete("/memory/{memory_id}")
+async def delete_memory(memory_id: str, request: Request) -> dict[str, bool]:
+    if not request.app.state.store.delete_memory(memory_id):
+        raise HTTPException(status_code=404, detail="Memory not found.")
+    return {"deleted": True}
+
+
+@router.delete("/memory")
+async def clear_memory(request: Request) -> dict[str, int]:
+    return {"deleted": request.app.state.store.clear_memories()}
+
+
+@router.get("/tasks")
+async def list_tasks(request: Request, include_completed: bool = True) -> list[dict[str, str]]:
+    return request.app.state.store.list_tasks(include_completed=include_completed)
+
+
+@router.post("/tasks", status_code=status.HTTP_201_CREATED)
+async def create_task(payload: TaskCreate, request: Request) -> dict[str, str]:
+    try:
+        return request.app.state.store.create_task(payload.title, payload.due_at)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.patch("/tasks/{task_id}")
+async def update_task(task_id: str, payload: TaskStatusUpdate, request: Request) -> dict[str, bool]:
+    if not request.app.state.store.set_task_status(task_id, payload.status):
+        raise HTTPException(status_code=404, detail="Task not found.")
+    return {"updated": True}
+
+
+@router.delete("/tasks/{task_id}")
+async def delete_task(task_id: str, request: Request) -> dict[str, bool]:
+    if not request.app.state.store.delete_task(task_id):
+        raise HTTPException(status_code=404, detail="Task not found.")
+    return {"deleted": True}
