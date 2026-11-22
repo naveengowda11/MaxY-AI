@@ -63,3 +63,18 @@ The API binds to localhost by default. Do not expose it to the LAN or public int
 
 ## License
 MIT. See [LICENSE](LICENSE).
+
+## Personal memory and tasks
+
+Stage 5 adds explicit, local memory and a basic task list:
+
+- Say `remember that I prefer concise explanations` to save a memory.
+- Ask `what do you remember about me` to list saved facts (each item shows an ID).
+- Say `forget memory <ID>` to remove a saved fact.
+- Say `remind me to prepare the demo` or `add task Prepare demo` to create a task.
+- Say `show my tasks` to list open tasks.
+- Say `complete task <8-character-ID>` to mark a task complete.
+
+Open **Memory & tasks** in the sidebar to view, add, and delete memories or tasks.
+
+This release stores tasks locally but does not yet schedule operating-system notifications, sync a calendar, or deliver phone push reminders. Those integrations require a later stage.
