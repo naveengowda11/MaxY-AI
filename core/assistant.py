@@ -47,7 +47,7 @@ class AssistantService:
         self.store.add_message(conversation_id, "user", user_message)
         normalized = " ".join(user_message.strip().split())
         memory_match = re.fullmatch(
-            r"(?:maxy[, ]+)?(?:please )?remember(?: that| this)?[: ]+(?!to\\s)(.+)",
+            r"(?:maxy[, ]+)?(?:please )?remember(?: that| this)?[: ]+(?!to\s)(.+)",
             normalized, flags=re.IGNORECASE,
         )
         if memory_match:
@@ -63,7 +63,7 @@ class AssistantService:
         if re.search(r"what do you remember about me|show my memories|list my memories", normalized, re.I):
             memories = self.store.list_memories(limit=30)
             if memories:
-                reply = "Your saved facts:\\n" + "\\n".join(
+                reply = "Your saved facts:\n" + "\n".join(
                     f"- [{item['id'][:8]}] {item['content']}" for item in memories
                 )
             else:
@@ -96,7 +96,7 @@ class AssistantService:
 
         if re.search(r"(show|list) (my )?(open )?tasks|what are my tasks", normalized, re.I):
             tasks = self.store.list_tasks(include_completed=False, limit=30)
-            reply = ("Open tasks:\\n" + "\\n".join(
+            reply = ("Open tasks:\n" + "\n".join(
                 f"- [{task['id']}] {task['title']}" for task in tasks
             )) if tasks else "You have no open tasks."
             self.store.add_message(conversation_id, "assistant", reply)
@@ -136,8 +136,8 @@ class AssistantService:
         memories = self.store.list_memories(limit=20)
         memory_context = ""
         if memories:
-            memory_context = "\\n\\nUser-approved local memory; use only when relevant:\\n"
-            memory_context += "\\n".join(f"- {item['content']}" for item in memories)
+            memory_context = "\n\nUser-approved local memory; use only when relevant:\n"
+            memory_context += "\n".join(f"- {item['content']}" for item in memories)
         messages = [{"role": "system", "content": SYSTEM_PROMPT + memory_context}, *history]
         answer = await self.llm.chat(messages)
         self.store.add_message(conversation_id, "assistant", answer)
