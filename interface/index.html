@@ -14,6 +14,7 @@
       <div class="brand"><span class="brand-mark">M</span><div><strong>MAXY</strong><small>PERSONAL AI</small></div></div>
       <button id="new-chat" class="new-chat" type="button">＋ New conversation</button>
       <button id="toggle-tools" class="new-chat tools-toggle" type="button">◇ Safe actions</button>
+      <button id="toggle-personal" class="new-chat tools-toggle" type="button">▤ Memory & tasks</button>
       <div class="sidebar-note"><span class="status-dot"></span><span>Local-first assistant</span></div>
       <div class="sidebar-bottom">Your assistant. Your machine. Your control.</div>
     </aside>
@@ -44,6 +45,27 @@
           <button id="approve-tool" class="prepare-button" type="button">Approve once and execute</button>
         </div>
         <p id="tool-status" class="tool-status">Tools only access the MAXY workspace, except launching the fixed app list.</p>
+      </section>
+
+      <section id="personal-panel" class="tools-panel personal-panel" hidden>
+        <div class="tools-heading"><div><span class="eyebrow">LOCAL · USER CONTROLLED</span><h2>Memory & daily tasks</h2></div><button id="close-personal" type="button" class="quiet-button">Close</button></div>
+        <div class="personal-columns">
+          <section>
+            <h3>Saved memory</h3>
+            <p class="personal-help">Only save facts you explicitly choose. Memory is stored in the local SQLite database.</p>
+            <form id="memory-form"><label for="memory-content">Remember a fact</label><textarea id="memory-content" rows="3" maxlength="1000" placeholder="I prefer concise explanations…" required></textarea><button class="prepare-button" type="submit">Save memory</button></form>
+            <div class="personal-list-head"><strong>Your memories</strong><button id="clear-memory" type="button" class="quiet-button">Clear all</button></div>
+            <div id="memory-list" class="personal-list"></div>
+          </section>
+          <section>
+            <h3>Tasks & reminders</h3>
+            <p class="personal-help">Local task list. This version does not send push notifications or calendar alerts.</p>
+            <form id="task-form"><label for="task-title">Add a task</label><input id="task-title" maxlength="300" placeholder="Prepare project demo" required><button class="prepare-button" type="submit">Add task</button></form>
+            <div class="personal-list-head"><strong>Your tasks</strong></div>
+            <div id="task-list" class="personal-list"></div>
+          </section>
+        </div>
+        <p id="personal-status" class="tool-status" aria-live="polite">Memory and tasks stay in your local database.</p>
       </section>
       <section id="messages" class="messages" aria-live="polite">
         <div id="welcome" class="welcome">
