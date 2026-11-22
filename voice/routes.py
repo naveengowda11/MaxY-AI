@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
+
 from voice.service import VoiceError
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
