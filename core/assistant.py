@@ -6,6 +6,7 @@ from core.llm import OllamaClient
 from memory.database import ChatStore
 from tools.approval import ApprovalService
 from tools.intent import ToolIntentParser
+from tools.registry import ToolError
 
 SYSTEM_PROMPT = (
     "You are MAXY, a helpful personal AI assistant. Be clear, practical, and honest. "
@@ -47,7 +48,12 @@ class AssistantService:
 
         if intent:
             tool_name, arguments = intent
-            proposal = approvals.propose(tool_name, arguments)
+            try:
+                proposal = approvals.propose(tool_name, arguments)
+            except ToolError as exc:
+                reply = f"I couldn't prepare that action: {exc}"
+                self.store.add_message(conversation_id, "assistant", reply)
+                return reply, None
             reply = (
                 f"I prepared a preview for {proposal['preview']['action'].lower()}. "
                 "Nothing has run. Review the action card and type APPROVE to execute "
