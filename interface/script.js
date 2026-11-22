@@ -134,6 +134,64 @@ async function speakText(text) {
   }
 }
 
+function renderPendingAction(action) {
+  const card = document.createElement("section");
+  card.className = "chat-action-card";
+
+  const title = document.createElement("strong");
+  title.textContent = "MAXY wants your approval";
+  const description = document.createElement("p");
+  description.textContent = "This action has not run. Review the exact preview below.";
+  const preview = document.createElement("pre");
+  preview.textContent = JSON.stringify(action.preview, null, 2);
+  const expiry = document.createElement("small");
+  expiry.textContent = "Approval expires at " + new Date(action.expires_at).toLocaleTimeString();
+
+  const label = document.createElement("label");
+  label.textContent = 'Type APPROVE to confirm this one-time action';
+  const approval = document.createElement("input");
+  approval.autocomplete = "off";
+  approval.maxLength = 32;
+  approval.placeholder = "APPROVE";
+  const execute = document.createElement("button");
+  execute.type = "button";
+  execute.className = "prepare-button";
+  execute.textContent = "Approve and execute";
+  const status = document.createElement("p");
+  status.className = "tool-status";
+
+  execute.addEventListener("click", async () => {
+    if (approval.value.trim().toUpperCase() !== "APPROVE") {
+      status.textContent = "Type APPROVE first. No action has run.";
+      return;
+    }
+    execute.disabled = true;
+    status.textContent = "Executing the approved action…";
+    try {
+      const response = await fetch(
+        `/api/tools/proposals/${encodeURIComponent(action.proposal_id)}/approve`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ approval_phrase: approval.value })
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "Action could not be executed.");
+      status.textContent = "Completed: " + JSON.stringify(data.result);
+      approval.disabled = true;
+      card.classList.add("action-complete");
+    } catch (error) {
+      status.textContent = error.message;
+      execute.disabled = false;
+    }
+  });
+
+  card.append(title, description, preview, expiry, label, approval, execute, status);
+  messagesEl.append(card);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
 async function sendMessage(message, fromVoice = false) {
   const clean = message.trim();
   if (!clean || sendButton.disabled) return;
@@ -162,6 +220,7 @@ async function sendMessage(message, fromVoice = false) {
     conversationId = data.conversation_id;
     localStorage.setItem("maxy_conversation_id", conversationId);
     addMessage("assistant", data.reply);
+    if (data.pending_action) renderPendingAction(data.pending_action);
     if (speakVoiceReply) await speakText(data.reply);
   } catch (error) {
     addMessage("assistant", `I couldn't complete that request. ${error.message}`);
