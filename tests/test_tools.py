@@ -95,3 +95,28 @@ def test_file_extension_and_size_are_restricted(tmp_path):
         pass
     else:
         raise AssertionError("Executable files must not be previewable")
+
+
+def test_chat_command_creates_proposal_without_executing(tmp_path):
+    calls = []
+    app = build_app(tmp_path)
+    app.state.tool_registry.app_launcher = calls.append
+    with TestClient(app) as client:
+        response = client.post("/api/chat", json={"message": "Maxy, open Calculator"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["pending_action"]["tool_name"] == "launch_app"
+    assert data["pending_action"]["arguments"] == {"app": "calculator"}
+    assert data["pending_action"]["preview"]["target"] == "calculator"
+    assert calls == []
+
+
+def test_chat_search_intent_creates_workspace_proposal(tmp_path):
+    with TestClient(build_app(tmp_path)) as client:
+        response = client.post(
+            "/api/chat", json={"message": "find my file named internship"}
+        )
+    assert response.status_code == 200
+    action = response.json()["pending_action"]
+    assert action["tool_name"] == "search_files"
+    assert action["arguments"] == {"query": "internship"}
