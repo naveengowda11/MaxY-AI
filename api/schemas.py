@@ -38,3 +38,31 @@ class HealthResponse(BaseModel):
     status: str
     app: str
     model: str
+
+
+class MemoryCreate(BaseModel):
+    content: str = Field(min_length=1, max_length=1000)
+    category: str = Field(default="general", max_length=40)
+
+    @field_validator("content")
+    @classmethod
+    def memory_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Memory cannot be blank.")
+        return value.strip()
+
+
+class TaskCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=300)
+    due_at: str | None = Field(default=None, max_length=80)
+
+    @field_validator("title")
+    @classmethod
+    def task_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("Task cannot be blank.")
+        return value.strip()
+
+
+class TaskStatusUpdate(BaseModel):
+    status: str = Field(pattern="^(open|completed)$")
