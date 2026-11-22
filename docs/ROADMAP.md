@@ -30,7 +30,10 @@
 - [x] Workspace-contained file list/search/read
 - [x] SQLite audit records
 - [x] Browser UI action preview and explicit APPROVE gate
-- [ ] Connect conversational intent to proposal-only flow
+- [x] Connect recognized conversational intent to proposal-only flow
+- [x] Show action preview and explicit approval card inside chat
+- [x] Keep ambiguous/unsupported requests on the normal assistant path
+- [x] Add API tests proving chat proposals do not execute before approval
 - [ ] Verify tool behavior on Windows and inspect audit log
 - [ ] Browser automation (future, with approval)
 
