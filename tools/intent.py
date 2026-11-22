@@ -4,13 +4,13 @@ Only narrowly recognized commands are converted to proposals. Unknown or ambiguo
 requests remain ordinary assistant conversations.
 """
 import re
-from typing import Any
+from typing import Any, ClassVar
 
 
 class ToolIntentParser:
     """Map a few explicit phrases to registered tool names and validated arguments."""
 
-    _APP_NAMES = {
+    _APP_NAMES: ClassVar[dict[str, str]] = {
         "calculator": "calculator",
         "calc": "calculator",
         "notepad": "notepad",
