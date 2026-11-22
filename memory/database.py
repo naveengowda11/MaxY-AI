@@ -55,6 +55,15 @@ class ChatStore:
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_conversation
                     ON messages(conversation_id, id);
+                CREATE TABLE IF NOT EXISTS user_memories (
+                    id TEXT PRIMARY KEY, content TEXT NOT NULL, category TEXT NOT NULL,
+                    created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS personal_tasks (
+                    id TEXT PRIMARY KEY, title TEXT NOT NULL, due_at TEXT,
+                    status TEXT NOT NULL CHECK(status IN ('open', 'completed')),
+                    created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS tool_proposals (
                     id TEXT PRIMARY KEY, tool_name TEXT NOT NULL,
                     arguments_json TEXT NOT NULL, expires_at TEXT NOT NULL,
@@ -69,6 +78,85 @@ class ChatStore:
                 CREATE INDEX IF NOT EXISTS idx_tool_audit_created ON tool_audit(created_at);
                 """
             )
+
+
+    def save_memory(self, content: str, category: str = "general") -> dict[str, str]:
+        cleaned = " ".join(content.strip().split())
+        if not cleaned or len(cleaned) > 1000:
+            raise ValueError("Memory must contain 1 to 1000 characters.")
+        category = category.strip().lower()[:40] or "general"
+        memory_id = str(uuid4())
+        now = utc_now()
+        with self._connection() as connection:
+            connection.execute(
+                "INSERT INTO user_memories(id, content, category, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (memory_id, cleaned, category, now, now),
+            )
+        return {"id": memory_id, "content": cleaned, "category": category,
+                "created_at": now, "updated_at": now}
+
+    def list_memories(self, limit: int = 100) -> list[dict[str, str]]:
+        safe_limit = max(1, min(int(limit), 250))
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT id, content, category, created_at, updated_at "
+                "FROM user_memories ORDER BY created_at DESC LIMIT ?", (safe_limit,)
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def delete_memory(self, memory_id: str) -> bool:
+        with self._connection() as connection:
+            cursor = connection.execute(
+                "DELETE FROM user_memories WHERE id = ?", (memory_id,)
+            )
+        return cursor.rowcount == 1
+
+    def clear_memories(self) -> int:
+        with self._connection() as connection:
+            cursor = connection.execute("DELETE FROM user_memories")
+        return cursor.rowcount
+
+    def create_task(self, title: str, due_at: str | None = None) -> dict[str, str]:
+        cleaned = " ".join(title.strip().split())
+        if not cleaned or len(cleaned) > 300:
+            raise ValueError("Task must contain 1 to 300 characters.")
+        task_id = str(uuid4())[:8]
+        now = utc_now()
+        with self._connection() as connection:
+            connection.execute(
+                "INSERT INTO personal_tasks(id, title, due_at, status, created_at, updated_at) "
+                "VALUES (?, ?, ?, 'open', ?, ?)",
+                (task_id, cleaned, due_at, now, now),
+            )
+        return {"id": task_id, "title": cleaned, "due_at": due_at or "",
+                "status": "open", "created_at": now, "updated_at": now}
+
+    def list_tasks(self, include_completed: bool = True, limit: int = 100) -> list[dict[str, str]]:
+        safe_limit = max(1, min(int(limit), 250))
+        query = ("SELECT id, title, due_at, status, created_at, updated_at "
+                 "FROM personal_tasks ")
+        if not include_completed:
+            query += "WHERE status = 'open' "
+        query += "ORDER BY CASE status WHEN 'open' THEN 0 ELSE 1 END, created_at DESC LIMIT ?"
+        with self._connection() as connection:
+            rows = connection.execute(query, (safe_limit,)).fetchall()
+        return [dict(row) for row in rows]
+
+    def set_task_status(self, task_id: str, status: str) -> bool:
+        if status not in {"open", "completed"}:
+            raise ValueError("Task status must be open or completed.")
+        with self._connection() as connection:
+            cursor = connection.execute(
+                "UPDATE personal_tasks SET status = ?, updated_at = ? WHERE id = ?",
+                (status, utc_now(), task_id),
+            )
+        return cursor.rowcount == 1
+
+    def delete_task(self, task_id: str) -> bool:
+        with self._connection() as connection:
+            cursor = connection.execute("DELETE FROM personal_tasks WHERE id = ?", (task_id,))
+        return cursor.rowcount == 1
 
     def create_conversation(self, title: str = "New conversation") -> str:
         conversation_id = str(uuid4())
