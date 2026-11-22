@@ -88,3 +88,12 @@ button, textarea { font: inherit; }
 .tool-review { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 #tool-preview { margin: 0; padding: 12px; border-radius: 10px; background: #edf3ee; color: #30483b; font-family: ui-monospace, monospace; font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tool-status { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+.chat-action-card { width: min(100%, 620px); align-self: flex-start; display: grid; gap: 10px; margin: 4px 0 18px; padding: 16px; border: 1px solid #d6e3d9; border-radius: 14px; background: #f7fbf8; }
+.chat-action-card strong { color: #254b37; font-size: 14px; }
+.chat-action-card p { margin: 0; color: #5f7165; font-size: 12px; line-height: 1.5; }
+.chat-action-card pre { max-height: 180px; overflow: auto; margin: 0; padding: 11px; border-radius: 9px; background: #eaf2ec; color: #30483b; font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat-action-card small { color: #829187; font-size: 10px; }
+.chat-action-card label { color: #53675b; font-size: 12px; font-weight: 650; }
+.chat-action-card input { width: 100%; padding: 10px 12px; border: 1px solid #dce5de; border-radius: 9px; background: white; color: var(--ink); }
+.chat-action-card.action-complete { border-color: #8ab59a; background: #f2faf4; }
