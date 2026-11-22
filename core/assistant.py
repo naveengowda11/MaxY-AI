@@ -1,4 +1,5 @@
 """Conversation orchestration for MAXY."""
+import re
 from collections.abc import Sequence
 from typing import Any
 
@@ -44,6 +45,73 @@ class AssistantService:
         approvals: ApprovalService | None,
     ) -> tuple[str, dict[str, Any] | None]:
         self.store.add_message(conversation_id, "user", user_message)
+        normalized = " ".join(user_message.strip().split())
+        memory_match = re.fullmatch(
+            r"(?:maxy[, ]+)?(?:please )?remember(?: that| this)?[: ]+(.+)",
+            normalized, flags=re.IGNORECASE,
+        )
+        if memory_match:
+            fact = memory_match.group(1).strip().strip('"').strip("'")
+            try:
+                saved = self.store.save_memory(fact)
+                reply = f"Saved to your local memory: {saved['content']}"
+            except ValueError as exc:
+                reply = f"I couldn't save that memory: {exc}"
+            self.store.add_message(conversation_id, "assistant", reply)
+            return reply, None
+
+        if re.search(r"what do you remember about me|show my memories|list my memories", normalized, re.I):
+            memories = self.store.list_memories(limit=30)
+            if memories:
+                reply = "Your saved facts:\\n" + "\\n".join(
+                    f"- [{item['id'][:8]}] {item['content']}" for item in memories
+                )
+            else:
+                reply = "You have no saved memories yet. Say 'remember that ...' to save one."
+            self.store.add_message(conversation_id, "assistant", reply)
+            return reply, None
+
+        forget_match = re.fullmatch(
+            r"(?:maxy[, ]+)?(?:please )?(?:forget|delete) memory ([a-f0-9-]{8,36})",
+            normalized, re.I,
+        )
+        if forget_match:
+            deleted = self.store.delete_memory(forget_match.group(1))
+            reply = "Deleted that local memory." if deleted else "I couldn't find that memory ID."
+            self.store.add_message(conversation_id, "assistant", reply)
+            return reply, None
+
+        task_match = re.fullmatch(
+            r"(?:maxy[, ]+)?(?:please )?(?:add task|remind me to|remember to)[: ]+(.+)",
+            normalized, re.I,
+        )
+        if task_match:
+            try:
+                task = self.store.create_task(task_match.group(1).strip().strip('"').strip("'"))
+                reply = f"Added task [{task['id']}]: {task['title']}"
+            except ValueError as exc:
+                reply = f"I couldn't add that task: {exc}"
+            self.store.add_message(conversation_id, "assistant", reply)
+            return reply, None
+
+        if re.search(r"(show|list) (my )?(open )?tasks|what are my tasks", normalized, re.I):
+            tasks = self.store.list_tasks(include_completed=False, limit=30)
+            reply = ("Open tasks:\\n" + "\\n".join(
+                f"- [{task['id']}] {task['title']}" for task in tasks
+            )) if tasks else "You have no open tasks."
+            self.store.add_message(conversation_id, "assistant", reply)
+            return reply, None
+
+        done_match = re.fullmatch(
+            r"(?:maxy[, ]+)?(?:please )?(?:complete|finish|mark done) task ([a-f0-9]{8})",
+            normalized, re.I,
+        )
+        if done_match:
+            updated = self.store.set_task_status(done_match.group(1), "completed")
+            reply = "Marked that task complete." if updated else "I couldn't find that task ID."
+            self.store.add_message(conversation_id, "assistant", reply)
+            return reply, None
+
         intent = self.intent_parser.parse(user_message) if approvals else None
 
         if intent:
@@ -65,7 +133,12 @@ class AssistantService:
         history: Sequence[dict[str, str]] = self.store.get_recent_messages(
             conversation_id, self.max_history_messages
         )
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}, *history]
+        memories = self.store.list_memories(limit=20)
+        memory_context = ""
+        if memories:
+            memory_context = "\\n\\nUser-approved local memory; use only when relevant:\\n"
+            memory_context += "\\n".join(f"- {item['content']}" for item in memories)
+        messages = [{"role": "system", "content": SYSTEM_PROMPT + memory_context}, *history]
         answer = await self.llm.chat(messages)
         self.store.add_message(conversation_id, "assistant", answer)
         return answer, None
