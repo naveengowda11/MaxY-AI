@@ -38,8 +38,11 @@
 - [ ] Browser automation (future, with approval)
 
 ## Stage 5 — Memory and daily planning
-- [ ] User-approved long-term memory
-- [ ] Reminders and tasks
+- [x] User-approved long-term memory with explicit remember command
+- [x] Memory recall and ID-based deletion in chat
+- [x] Memory list, individual delete, and clear-all controls in local UI
+- [x] Local SQLite tasks with create/list/complete/delete
+- [x] Natural-language task creation and completion
 - [ ] Calendar integration
 - [ ] Email integration with drafts-first behavior
 
