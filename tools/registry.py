@@ -2,7 +2,8 @@
 import platform
 import subprocess
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, ClassVar
+from collections.abc import Callable
 
 
 class ToolError(RuntimeError):
@@ -10,7 +11,7 @@ class ToolError(RuntimeError):
 
 
 class ToolRegistry:
-    READABLE_EXTENSIONS = {".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".log", ".py"}
+    READABLE_EXTENSIONS: ClassVar[set[str]] = {".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".log", ".py"}
     MAX_READ_BYTES = 1024 * 1024
 
     def __init__(self, allowed_roots: list[Path],

@@ -1,6 +1,5 @@
 """Optional offline speech recognition and speech synthesis adapters."""
 import tempfile
-import wave
 from pathlib import Path
 
 from config import Settings

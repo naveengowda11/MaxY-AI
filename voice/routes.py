@@ -5,8 +5,6 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
-
-from core.llm import LLMError
 from voice.service import VoiceError
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
@@ -40,7 +38,7 @@ async def voice_status(request: Request) -> dict[str, object]:
 @router.post("/transcribe")
 async def transcribe(
     request: Request,
-    audio: UploadFile = File(...),
+    audio: UploadFile = File(...),  # noqa: B008
 ) -> dict[str, str]:
     _require_voice(request)
     content_type = (audio.content_type or "").lower()

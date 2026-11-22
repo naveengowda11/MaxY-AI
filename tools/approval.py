@@ -1,7 +1,7 @@
 """One-shot approval and audit lifecycle for local tool execution."""
 import json
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from memory.database import ChatStore
 from tools.registry import ToolError, ToolRegistry
@@ -17,7 +17,7 @@ class ApprovalService:
     def propose(self, tool_name: str, arguments: dict) -> dict:
         preview = self.registry.preview(tool_name, arguments)
         proposal_id = secrets.token_urlsafe(24)
-        expiry = (datetime.now(timezone.utc) + timedelta(seconds=APPROVAL_SECONDS)).isoformat()
+        expiry = (datetime.now(UTC) + timedelta(seconds=APPROVAL_SECONDS)).isoformat()
         self.store.create_tool_proposal(
             proposal_id, tool_name, json.dumps(arguments, sort_keys=True), expiry
         )
