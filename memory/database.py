@@ -107,8 +107,14 @@ class ChatStore:
 
     def delete_memory(self, memory_id: str) -> bool:
         with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT id FROM user_memories WHERE id = ? OR id LIKE ?",
+                (memory_id, memory_id + "%"),
+            ).fetchall()
+            if len(rows) != 1:
+                return False
             cursor = connection.execute(
-                "DELETE FROM user_memories WHERE id = ?", (memory_id,)
+                "DELETE FROM user_memories WHERE id = ?", (rows[0]["id"],)
             )
         return cursor.rowcount == 1
 
