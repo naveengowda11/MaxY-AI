@@ -335,7 +335,7 @@ toolForm.addEventListener("submit", async (event) => {
     if (!response.ok) throw new Error(data.detail || "Could not prepare action.");
     currentProposal = data.proposal_id;
     toolPreview.textContent = JSON.stringify(data.preview, null, 2) +
-      "\\n\\nExpires: " + new Date(data.expires_at).toLocaleTimeString();
+      "\n\nExpires: " + new Date(data.expires_at).toLocaleTimeString();
     toolReview.hidden = false;
     toolStatus.textContent = "Review the preview. Nothing runs until you approve.";
   } catch (error) {
