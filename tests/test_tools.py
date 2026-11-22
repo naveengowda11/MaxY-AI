@@ -120,3 +120,19 @@ def test_chat_search_intent_creates_workspace_proposal(tmp_path):
     action = response.json()["pending_action"]
     assert action["tool_name"] == "search_files"
     assert action["arguments"] == {"query": "internship"}
+
+
+def test_explicit_memory_and_task_commands_work_without_llm(tmp_path):
+    app = build_app(tmp_path)
+    with TestClient(app) as client:
+        remembered = client.post("/api/chat", json={"message": "remember that I like Java"})
+        assert "Saved to your local memory" in remembered.json()["reply"]
+
+        recall = client.post("/api/chat", json={"message": "what do you remember about me"})
+        assert "I like Java" in recall.json()["reply"]
+
+        added = client.post("/api/chat", json={"message": "remind me to finish MaxY stage"})
+        assert "Added task" in added.json()["reply"]
+
+        tasks = client.post("/api/chat", json={"message": "show my tasks"})
+        assert "finish MaxY stage" in tasks.json()["reply"]
