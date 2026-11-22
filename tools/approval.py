@@ -32,7 +32,7 @@ class ApprovalService:
         proposal = self.store.get_tool_proposal(proposal_id)
         if proposal is None:
             raise ToolError("Approval request was not found or was already used.")
-        if datetime.fromisoformat(proposal["expires_at"]) <= datetime.now(timezone.utc):
+        if datetime.fromisoformat(proposal["expires_at"]) <= datetime.now(UTC):
             self.store.update_tool_proposal(proposal_id, "expired", expected_status="pending")
             self.store.add_audit_event("approval_expired", proposal["tool_name"], proposal_id, "expired")
             raise ToolError("Approval expired. Create a new proposal.")
