@@ -425,3 +425,148 @@ approveTool.addEventListener("click", async () => {
     approveTool.disabled = false;
   }
 });
+
+
+const personalPanel = document.querySelector("#personal-panel");
+const togglePersonal = document.querySelector("#toggle-personal");
+const closePersonal = document.querySelector("#close-personal");
+const memoryForm = document.querySelector("#memory-form");
+const memoryContent = document.querySelector("#memory-content");
+const memoryList = document.querySelector("#memory-list");
+const clearMemoryButton = document.querySelector("#clear-memory");
+const taskForm = document.querySelector("#task-form");
+const taskTitle = document.querySelector("#task-title");
+const taskList = document.querySelector("#task-list");
+const personalStatus = document.querySelector("#personal-status");
+
+function makePersonalItem(titleText, metaText) {
+  const item = document.createElement("article");
+  item.className = "personal-item";
+  const title = document.createElement("p");
+  title.textContent = titleText;
+  const meta = document.createElement("small");
+  meta.textContent = metaText;
+  item.append(title, meta);
+  return item;
+}
+
+async function loadPersonalData() {
+  try {
+    const [memoryResponse, taskResponse] = await Promise.all([
+      fetch("/api/memory"),
+      fetch("/api/tasks?include_completed=true")
+    ]);
+    if (!memoryResponse.ok || !taskResponse.ok) throw new Error("Could not load personal data.");
+    const memories = await memoryResponse.json();
+    const tasks = await taskResponse.json();
+    memoryList.replaceChildren();
+    taskList.replaceChildren();
+
+    if (!memories.length) memoryList.textContent = "No saved memories yet.";
+    memories.forEach((memory) => {
+      const item = makePersonalItem(memory.content, memory.category + " · ID " + memory.id.slice(0, 8));
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "quiet-button";
+      remove.textContent = "Delete";
+      remove.addEventListener("click", async () => {
+        const response = await fetch("/api/memory/" + encodeURIComponent(memory.id), { method: "DELETE" });
+        if (response.ok) {
+          personalStatus.textContent = "Memory deleted from this device.";
+          loadPersonalData();
+        } else personalStatus.textContent = "Could not delete that memory.";
+      });
+      item.append(remove);
+      memoryList.append(item);
+    });
+
+    if (!tasks.length) taskList.textContent = "No tasks saved.";
+    tasks.forEach((task) => {
+      const item = makePersonalItem(task.title, task.status + " · ID " + task.id);
+      if (task.status === "open") {
+        const done = document.createElement("button");
+        done.type = "button";
+        done.className = "quiet-button";
+        done.textContent = "Complete";
+        done.addEventListener("click", async () => {
+          const response = await fetch("/api/tasks/" + encodeURIComponent(task.id), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "completed" })
+          });
+          if (response.ok) loadPersonalData();
+          else personalStatus.textContent = "Could not update task.";
+        });
+        item.append(done);
+      }
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "quiet-button";
+      remove.textContent = "Delete";
+      remove.addEventListener("click", async () => {
+        const response = await fetch("/api/tasks/" + encodeURIComponent(task.id), { method: "DELETE" });
+        if (response.ok) loadPersonalData();
+        else personalStatus.textContent = "Could not delete task.";
+      });
+      item.append(remove);
+      taskList.append(item);
+    });
+  } catch (error) {
+    personalStatus.textContent = error.message;
+  }
+}
+
+togglePersonal.addEventListener("click", () => {
+  personalPanel.hidden = !personalPanel.hidden;
+  if (!personalPanel.hidden) loadPersonalData();
+});
+closePersonal.addEventListener("click", () => { personalPanel.hidden = true; });
+
+memoryForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const content = memoryContent.value.trim();
+  if (!content) return;
+  try {
+    const response = await fetch("/api/memory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content, category: "general" })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Could not save memory.");
+    memoryContent.value = "";
+    personalStatus.textContent = "Saved locally. You can delete it at any time.";
+    loadPersonalData();
+  } catch (error) {
+    personalStatus.textContent = error.message;
+  }
+});
+
+clearMemoryButton.addEventListener("click", async () => {
+  if (!window.confirm("Delete every saved memory from this local database?")) return;
+  const response = await fetch("/api/memory", { method: "DELETE" });
+  if (response.ok) {
+    personalStatus.textContent = "All saved memories were deleted.";
+    loadPersonalData();
+  } else personalStatus.textContent = "Could not clear memory.";
+});
+
+taskForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const title = taskTitle.value.trim();
+  if (!title) return;
+  try {
+    const response = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Could not add task.");
+    taskTitle.value = "";
+    personalStatus.textContent = "Task saved locally. Task ID: " + data.id;
+    loadPersonalData();
+  } catch (error) {
+    personalStatus.textContent = error.message;
+  }
+});
