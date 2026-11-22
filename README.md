@@ -16,7 +16,7 @@ The repository includes:
 - Browser push-to-talk recording and voice playback controls.
 - Unit and API tests for core and voice endpoints.
 
-Wake-word detection, computer control, and Android device pairing are not implemented yet. Voice is opt-in and text mode remains available.
+Voice is opt-in and text mode remains available. Stage 4 adds a safe-action panel for fixed app launching and workspace-only file tools, with one-time approval.
 
 ## Quick start (Windows)
 
@@ -59,7 +59,7 @@ ruff check .
 - [Setup and troubleshooting](docs/SETUP.md)
 - [Security baseline](docs/SECURITY.md)
 
-The API binds to localhost by default. Do not expose it to the LAN or public internet. Authenticated Android pairing is not implemented yet. Audio recordings are processed in temporary files and deleted after transcription.
+The API binds to localhost by default. Do not expose it to the LAN or public internet. Authenticated Android pairing is not implemented yet. Audio recordings are processed in temporary files and deleted after transcription. Stage 4 file tools are confined to the MAXY project workspace.
 
 ## License
 MIT. See [LICENSE](LICENSE).

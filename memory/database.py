@@ -55,6 +55,18 @@ class ChatStore:
                 );
                 CREATE INDEX IF NOT EXISTS idx_messages_conversation
                     ON messages(conversation_id, id);
+                CREATE TABLE IF NOT EXISTS tool_proposals (
+                    id TEXT PRIMARY KEY, tool_name TEXT NOT NULL,
+                    arguments_json TEXT NOT NULL, expires_at TEXT NOT NULL,
+                    status TEXT NOT NULL CHECK(status IN
+                        ('pending', 'executing', 'completed', 'expired', 'failed'))
+                );
+                CREATE TABLE IF NOT EXISTS tool_audit (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, event TEXT NOT NULL,
+                    tool_name TEXT NOT NULL, proposal_id TEXT NOT NULL,
+                    detail TEXT NOT NULL, created_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_tool_audit_created ON tool_audit(created_at);
                 """
             )
 
@@ -122,5 +134,59 @@ class ChatStore:
                 "SELECT id, title, created_at, updated_at FROM conversations "
                 "ORDER BY updated_at DESC LIMIT ?",
                 (safe_limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def create_tool_proposal(self, proposal_id: str, tool_name: str,
+                             arguments_json: str, expires_at: str) -> None:
+        with self._connection() as connection:
+            connection.execute(
+                "INSERT INTO tool_proposals(id, tool_name, arguments_json, expires_at, status) "
+                "VALUES (?, ?, ?, ?, 'pending')",
+                (proposal_id, tool_name, arguments_json, expires_at),
+            )
+
+    def get_tool_proposal(self, proposal_id: str) -> dict[str, str] | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT id, tool_name, arguments_json, expires_at, status "
+                "FROM tool_proposals WHERE id = ? AND status = 'pending'",
+                (proposal_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def update_tool_proposal(self, proposal_id: str, status: str,
+                             expected_status: str | None = None) -> bool:
+        valid = {"pending", "executing", "completed", "expired", "failed"}
+        if status not in valid:
+            raise ValueError("Invalid tool proposal status.")
+        with self._connection() as connection:
+            if expected_status:
+                cursor = connection.execute(
+                    "UPDATE tool_proposals SET status = ? WHERE id = ? AND status = ?",
+                    (status, proposal_id, expected_status),
+                )
+            else:
+                cursor = connection.execute(
+                    "UPDATE tool_proposals SET status = ? WHERE id = ?",
+                    (status, proposal_id),
+                )
+        return cursor.rowcount == 1
+
+    def add_audit_event(self, event: str, tool_name: str, proposal_id: str,
+                         detail: str) -> None:
+        with self._connection() as connection:
+            connection.execute(
+                "INSERT INTO tool_audit(event, tool_name, proposal_id, detail, created_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (event, tool_name, proposal_id, detail[:500], utc_now()),
+            )
+
+    def get_audit_events(self, limit: int = 100) -> list[dict[str, str]]:
+        safe_limit = max(1, min(int(limit), 500))
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT event, tool_name, proposal_id, detail, created_at "
+                "FROM tool_audit ORDER BY id DESC LIMIT ?", (safe_limit,)
             ).fetchall()
         return [dict(row) for row in rows]

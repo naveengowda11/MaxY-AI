@@ -24,11 +24,15 @@
 - [ ] Opt-in wake-word detection (separate, later milestone)
 
 ## Stage 4 — Safe actions
-- [ ] Typed tool registry and approval lifecycle
-- [ ] Restricted application launcher
-- [ ] Safe file listing/search
-- [ ] Browser automation with approval
-- [ ] Audit log
+- [x] Typed request models and registered tools
+- [x] 90-second one-use approval and execution lifecycle
+- [x] Fixed allow-list app launcher (Windows)
+- [x] Workspace-contained file list/search/read
+- [x] SQLite audit records
+- [x] Browser UI action preview and explicit APPROVE gate
+- [ ] Connect conversational intent to proposal-only flow
+- [ ] Verify tool behavior on Windows and inspect audit log
+- [ ] Browser automation (future, with approval)
 
 ## Stage 5 — Memory and daily planning
 - [ ] User-approved long-term memory

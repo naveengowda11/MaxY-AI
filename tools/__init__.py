@@ -1,1 +1,1 @@
-"""MAXY tool integrations (planned)."""
+"""MAXY's explicitly registered, permission-gated tools."""

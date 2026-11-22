@@ -13,6 +13,7 @@
     <aside class="sidebar">
       <div class="brand"><span class="brand-mark">M</span><div><strong>MAXY</strong><small>PERSONAL AI</small></div></div>
       <button id="new-chat" class="new-chat" type="button">＋ New conversation</button>
+      <button id="toggle-tools" class="new-chat tools-toggle" type="button">◇ Safe actions</button>
       <div class="sidebar-note"><span class="status-dot"></span><span>Local-first assistant</span></div>
       <div class="sidebar-bottom">Your assistant. Your machine. Your control.</div>
     </aside>
@@ -23,6 +24,27 @@
         <div class="connection"><span class="status-dot"></span><span id="connection-label">Checking local service…</span></div>
       </header>
 
+      <section id="tools-panel" class="tools-panel" hidden>
+        <div class="tools-heading"><div><span class="eyebrow">LOCAL · APPROVAL REQUIRED</span><h2>Safe actions</h2></div><button id="close-tools" type="button" class="quiet-button">Close</button></div>
+        <form id="tool-form">
+          <label for="tool-choice">Action</label>
+          <select id="tool-choice">
+            <option value="launch_app">Launch an approved app</option>
+            <option value="list_files">List workspace files</option>
+            <option value="search_files">Search file names</option>
+            <option value="read_text_file">Read a workspace text file</option>
+          </select>
+          <div id="tool-fields"></div>
+          <button class="prepare-button" type="submit">Review action</button>
+        </form>
+        <div id="tool-review" class="tool-review" hidden>
+          <p id="tool-preview"></p>
+          <label for="approval-input">Type APPROVE to execute this exact action</label>
+          <input id="approval-input" autocomplete="off" placeholder="APPROVE">
+          <button id="approve-tool" class="prepare-button" type="button">Approve once and execute</button>
+        </div>
+        <p id="tool-status" class="tool-status">Tools only access the MAXY workspace, except launching the fixed app list.</p>
+      </section>
       <section id="messages" class="messages" aria-live="polite">
         <div id="welcome" class="welcome">
           <div class="welcome-orb"><span>M</span></div>

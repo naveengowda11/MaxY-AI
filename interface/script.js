@@ -276,3 +276,93 @@ messagesEl.addEventListener("click", (event) => {
 checkHealth();
 checkVoice();
 loadConversation();
+
+const toolsPanel = document.querySelector("#tools-panel");
+const toggleTools = document.querySelector("#toggle-tools");
+const closeTools = document.querySelector("#close-tools");
+const toolForm = document.querySelector("#tool-form");
+const toolChoice = document.querySelector("#tool-choice");
+const toolFields = document.querySelector("#tool-fields");
+const toolReview = document.querySelector("#tool-review");
+const toolPreview = document.querySelector("#tool-preview");
+const approvalInput = document.querySelector("#approval-input");
+const approveTool = document.querySelector("#approve-tool");
+const toolStatus = document.querySelector("#tool-status");
+let currentProposal = null;
+
+function renderToolFields() {
+  currentProposal = null;
+  toolReview.hidden = true;
+  approvalInput.value = "";
+  const kind = toolChoice.value;
+  let markup = "";
+  if (kind === "launch_app") {
+    markup = '<label for="app-choice">Application</label><select id="app-choice"><option value="notepad">Notepad</option><option value="calculator">Calculator</option><option value="paint">Paint</option><option value="explorer">File Explorer</option></select>';
+  } else if (kind === "list_files") {
+    markup = '<label for="directory-input">Workspace folder (relative, optional)</label><input id="directory-input" placeholder=". or notes">';
+  } else if (kind === "search_files") {
+    markup = '<label for="query-input">File name contains</label><input id="query-input" required maxlength="120" placeholder="meeting">';
+  } else {
+    markup = '<label for="path-input">Workspace file path</label><input id="path-input" required placeholder="notes/todo.txt">';
+  }
+  toolFields.innerHTML = markup;
+}
+
+function selectedToolArguments() {
+  const kind = toolChoice.value;
+  if (kind === "launch_app") return { app: document.querySelector("#app-choice").value };
+  if (kind === "list_files") return { directory: document.querySelector("#directory-input").value.trim() || "." };
+  if (kind === "search_files") return { query: document.querySelector("#query-input").value.trim() };
+  return { path: document.querySelector("#path-input").value.trim() };
+}
+
+toggleTools.addEventListener("click", () => { toolsPanel.hidden = !toolsPanel.hidden; });
+closeTools.addEventListener("click", () => { toolsPanel.hidden = true; });
+toolChoice.addEventListener("change", renderToolFields);
+renderToolFields();
+
+toolForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  toolStatus.textContent = "Preparing a preview. No action has been executed.";
+  toolReview.hidden = true;
+  try {
+    const response = await fetch("/api/tools/proposals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tool_name: toolChoice.value, arguments: selectedToolArguments() })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Could not prepare action.");
+    currentProposal = data.proposal_id;
+    toolPreview.textContent = JSON.stringify(data.preview, null, 2) +
+      "\\n\\nExpires: " + new Date(data.expires_at).toLocaleTimeString();
+    toolReview.hidden = false;
+    toolStatus.textContent = "Review the preview. Nothing runs until you approve.";
+  } catch (error) {
+    toolStatus.textContent = error.message;
+  }
+});
+
+approveTool.addEventListener("click", async () => {
+  if (!currentProposal || approvalInput.value.trim().toUpperCase() !== "APPROVE") {
+    toolStatus.textContent = "Type APPROVE exactly to confirm this one-time action.";
+    return;
+  }
+  approveTool.disabled = true;
+  try {
+    const response = await fetch(`/api/tools/proposals/${encodeURIComponent(currentProposal)}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ approval_phrase: approvalInput.value })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Action was not approved.");
+    toolStatus.textContent = "Completed: " + JSON.stringify(data.result);
+    currentProposal = null;
+    toolReview.hidden = true;
+  } catch (error) {
+    toolStatus.textContent = error.message;
+  } finally {
+    approveTool.disabled = false;
+  }
+});

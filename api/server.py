@@ -13,6 +13,9 @@ from core.llm import OllamaClient
 from memory.database import ChatStore
 from voice.routes import router as voice_router
 from voice.service import VoiceService
+from tools.approval import ApprovalService
+from tools.registry import ToolRegistry
+from tools.routes import router as tools_router
 
 INTERFACE_DIR = Path(__file__).resolve().parent.parent / "interface"
 
@@ -51,8 +54,12 @@ def create_app(
     app.state.store = chat_store
     app.state.assistant = assistant_service
     app.state.voice = voice_service or VoiceService(app_settings)
+    tool_registry = ToolRegistry([Path(__file__).resolve().parent.parent / "workspace"])
+    app.state.tool_registry = tool_registry
+    app.state.approvals = ApprovalService(chat_store, tool_registry)
     app.include_router(router)
     app.include_router(voice_router)
+    app.include_router(tools_router)
 
     if INTERFACE_DIR.exists():
         app.mount(
