@@ -55,7 +55,9 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
         )
 
     try:
-        reply = await service.reply(conversation_id, payload.message)
+        reply, proposal = await service.reply_with_action(
+            conversation_id, payload.message, request.app.state.approvals
+        )
     except LLMError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -63,4 +65,12 @@ async def chat(payload: ChatRequest, request: Request) -> ChatResponse:
             headers={"X-Conversation-ID": conversation_id},
         ) from exc
 
-    return ChatResponse(conversation_id=conversation_id, reply=reply)
+    pending_action = None
+    if proposal:
+        pending_action = {
+            key: proposal[key]
+            for key in ("proposal_id", "tool_name", "arguments", "preview", "expires_at", "approval_phrase")
+        }
+    return ChatResponse(
+        conversation_id=conversation_id, reply=reply, pending_action=pending_action
+    )
