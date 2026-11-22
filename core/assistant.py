@@ -48,7 +48,7 @@ class AssistantService:
         normalized = " ".join(user_message.strip().split())
         memory_match = re.fullmatch(
             r"(?:maxy[, ]+)?(?:please )?remember(?: that| this)?[: ]+(?!to\s)(.+)",
-            normalized, flags=re.IGNORECASE,
+            normalized, flags=re.IGNORECASEGNORECASE,
         )
         if memory_match:
             fact = memory_match.group(1).strip().strip('"').strip("'")
@@ -60,7 +60,7 @@ class AssistantService:
             self.store.add_message(conversation_id, "assistant", reply)
             return reply, None
 
-        if re.search(r"what do you remember about me|show my memories|list my memories", normalized, re.I):
+        if re.search(r"what do you remember about me|show my memories|list my memories", normalized, re.IGNORECASE):
             memories = self.store.list_memories(limit=30)
             if memories:
                 reply = "Your saved facts:\n" + "\n".join(
@@ -73,7 +73,7 @@ class AssistantService:
 
         forget_match = re.fullmatch(
             r"(?:maxy[, ]+)?(?:please )?(?:forget|delete) memory ([a-f0-9-]{8,36})",
-            normalized, re.I,
+            normalized, re.IGNORECASE,
         )
         if forget_match:
             deleted = self.store.delete_memory(forget_match.group(1))
@@ -83,7 +83,7 @@ class AssistantService:
 
         task_match = re.fullmatch(
             r"(?:maxy[, ]+)?(?:please )?(?:add task|remind me to|remember to)[: ]+(.+)",
-            normalized, re.I,
+            normalized, re.IGNORECASE,
         )
         if task_match:
             try:
@@ -94,7 +94,7 @@ class AssistantService:
             self.store.add_message(conversation_id, "assistant", reply)
             return reply, None
 
-        if re.search(r"(show|list) (my )?(open )?tasks|what are my tasks", normalized, re.I):
+        if re.search(r"(show|list) (my )?(open )?tasks|what are my tasks", normalized, re.IGNORECASE):
             tasks = self.store.list_tasks(include_completed=False, limit=30)
             reply = ("Open tasks:\n" + "\n".join(
                 f"- [{task['id']}] {task['title']}" for task in tasks
@@ -104,7 +104,7 @@ class AssistantService:
 
         done_match = re.fullmatch(
             r"(?:maxy[, ]+)?(?:please )?(?:complete|finish|mark done) task ([a-f0-9]{8})",
-            normalized, re.I,
+            normalized, re.IGNORECASE,
         )
         if done_match:
             updated = self.store.set_task_status(done_match.group(1), "completed")
