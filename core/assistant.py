@@ -47,7 +47,7 @@ class AssistantService:
         self.store.add_message(conversation_id, "user", user_message)
         normalized = " ".join(user_message.strip().split())
         memory_match = re.fullmatch(
-            r"(?:maxy[, ]+)?(?:please )?remember(?: that| this)?[: ]+(.+)",
+            r"(?:maxy[, ]+)?(?:please )?remember(?: that| this)?[: ]+(?!to\\s)(.+)",
             normalized, flags=re.IGNORECASE,
         )
         if memory_match:
