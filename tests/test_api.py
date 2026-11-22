@@ -62,3 +62,28 @@ def test_unknown_conversation_returns_404(tmp_path):
         )
 
     assert response.status_code == 404
+
+
+def test_memory_create_list_delete_and_clear(tmp_path):
+    app = build_test_app(tmp_path / "maxy.db")
+    with TestClient(app) as client:
+        created = client.post("/api/memory", json={"content": "I prefer Java", "category": "preference"})
+        assert created.status_code == 201
+        memory_id = created.json()["id"]
+        assert client.get("/api/memory").json()[0]["content"] == "I prefer Java"
+        assert client.delete(f"/api/memory/{memory_id}").json() == {"deleted": True}
+        client.post("/api/memory", json={"content": "Temporary note"})
+        assert client.delete("/api/memory").json()["deleted"] == 1
+        assert client.get("/api/memory").json() == []
+
+
+def test_tasks_create_complete_and_delete(tmp_path):
+    app = build_test_app(tmp_path / "maxy.db")
+    with TestClient(app) as client:
+        created = client.post("/api/tasks", json={"title": "Review project"})
+        assert created.status_code == 201
+        task_id = created.json()["id"]
+        assert client.get("/api/tasks?include_completed=false").json()[0]["title"] == "Review project"
+        assert client.patch(f"/api/tasks/{task_id}", json={"status": "completed"}).status_code == 200
+        assert client.get("/api/tasks?include_completed=false").json() == []
+        assert client.delete(f"/api/tasks/{task_id}").json() == {"deleted": True}
