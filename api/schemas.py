@@ -18,6 +18,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     conversation_id: str
     reply: str
+    pending_action: dict | None = None
 
 
 class MessageItem(BaseModel):
